@@ -6,7 +6,7 @@ import json
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route("/Get")
 def index():
     res = requests.get("https://store.steampowered.com/search/?filter=topsellers&os=win&ignore_preferences=1")
     soup = BeautifulSoup(res.text, 'html.parser')
@@ -27,7 +27,7 @@ def index():
 
     i = 0
     tempapplist = []
-    
+
     for item in HTMLAppInfo:
         application = {}
         # 網址
@@ -46,8 +46,8 @@ def index():
         tempapplist.append(application)
 
     GameList["applications"] = tempapplist
-    print(json.dumps(GameList, indent=4, sort_keys=True))
-    return "Success"
+    # print(json.dumps(GameList, indent=4, sort_keys=True))
+    return json.dumps(GameList, indent=4, sort_keys=True)
 
 def GetAppSmPic(HtmlAppPic):
     PicList = []
