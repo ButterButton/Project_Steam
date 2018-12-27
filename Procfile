@@ -1,1 +1,1 @@
-"web: gunicorn AppList:app" 
+"web: python AppList.py" 
