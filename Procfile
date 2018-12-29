@@ -1,1 +1,1 @@
-"web: python AppList.py" 
+web: gunicorn AppList:app --log-file -

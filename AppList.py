@@ -1,14 +1,17 @@
 from flask import Flask
+from flask import Response
 import requests
 from bs4 import BeautifulSoup
 import datetime
 import json
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/Get")
 def index():
-    res = requests.get("https://store.steampowered.com/search/?filter=topsellers&os=win&ignore_preferences=1")
+    res = requests.get("https://store.steampowered.com/search/?filter=topsellers&os=win&ignore_preferences=1&cc=TW")
     soup = BeautifulSoup(res.text, 'html.parser')
     GameList = {
         "type" : "topseller",
@@ -21,11 +24,12 @@ def index():
     HTMLAppInfo = soup.find_all("a", class_="search_result_row")
     HTMLAppPic = soup.find_all("div", class_="search_capsule")
     HTMLAppName = soup.find_all("span", class_="title")
-    HTMLAppEval = soup.find_all("span", class_="search_review_summary")
+    HTMLAppEval = soup.select(".search_reviewscore")
     HTMLAppDis = soup.select(".search_discount")
     HTMLAppPrice = soup.find_all("div", class_="search_price")
 
     i = 0
+    pages = 1
     tempapplist = []
 
     for item in HTMLAppInfo:
@@ -42,12 +46,16 @@ def index():
         application["original_price"] = GetAppOrgPrice(HTMLAppPrice)[i]
         application["discount_price"] = GetAppDisPrice(HTMLAppPrice)[i]
         i = i + 1
+        if(i % 8 == 0):
+            pages = pages + 1
+
+        application["page"] = pages
         application["rank"] = i
         tempapplist.append(application)
 
     GameList["applications"] = tempapplist
-    # print(json.dumps(GameList, indent=4, sort_keys=True))
-    return json.dumps(GameList, indent=4, sort_keys=True)
+    tetete = json.dumps(GameList, ensure_ascii=False, indent=4)
+    return Response(json.dumps(GameList, ensure_ascii=False, indent=4), mimetype='text/json')
 
 def GetAppSmPic(HtmlAppPic):
     PicList = []
@@ -69,8 +77,11 @@ def GetAppEval(HtmlAppEval):
     EvalList = []
 
     for Eval in HtmlAppEval:
-        EvalList.append(Eval["data-tooltip-html"])
-    
+        if(Eval.find("span") == None):
+            EvalList.append("尚無評價")
+        else:
+            EvalList.append(Eval.span["data-tooltip-html"])
+          
     return EvalList
 
 def GetAppDis(HtmlAppDis):
@@ -88,10 +99,10 @@ def GetAppOrgPrice(HtmlAppPrice):
     OrgPriceList = []
 
     for Price in HtmlAppPrice:
-        if(Price.find("span") == None):        
+        if(Price.find("span") == None):      
             OrgPriceList.append(Price.get_text().strip())
         else:
-            OrgPriceList.append("NT$" + Price.get_text().split("NT$")[1])
+            OrgPriceList.append(Price.find("strike").get_text())
 
     return OrgPriceList
 
@@ -102,7 +113,8 @@ def GetAppDisPrice(HtmlAppPrice):
         if(Price.find("span") == None):        
             DisPriceList.append("")
         else:
-            DisPriceList.append("NT$" + Price.get_text().strip().split("NT$")[2])
+            length = len(Price.get_text().split("NT$"))
+            DisPriceList.append("NT$" + Price.get_text().strip().split("NT$")[length-1])
 
     return DisPriceList
 
