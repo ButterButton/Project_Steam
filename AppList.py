@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 import datetime
 import json
 from flask_cors import CORS
+import pytz
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -13,9 +15,11 @@ CORS(app)
 def index():
     res = requests.get("https://store.steampowered.com/search/?filter=topsellers&os=win&ignore_preferences=1&cc=TW")
     soup = BeautifulSoup(res.text, 'html.parser')
+    tw = pytz.timezone("Asia/Taipei")
+    dt = datetime.datetime.now(tw)
     GameList = {
         "type" : "topseller",
-	    "datetime" : datetime.datetime.now().date().strftime("%Y-%m-%d"),
+	    "datetime" : dt.strftime("%Y-%m-%d_%H:%M"),
 	    "total_app" : 0,
 	    "startrank" : 0,
         "endtrank" : 0,
@@ -34,18 +38,22 @@ def index():
 
     for item in HTMLAppInfo:
         application = {}
-        # 網址
         link = item["href"]
         applink = link.split("/")
+        
         application["steam_link"] = link
         application["app_id"] = applink[4]
+        application["app_type"] = applink[3]
         application["small_pic"] = GetAppSmPic(HTMLAppPic)[i]
+        application["header_pic"] = GetHeaderPic(application["small_pic"].split("/"), applink)
         application["app_name"] = GetAppName(HTMLAppName)[i]
         application["evaluation"] = GetAppEval(HTMLAppEval)[i]
         application["discount"] = GetAppDis(HTMLAppDis)[i]
         application["original_price"] = GetAppOrgPrice(HTMLAppPrice)[i]
         application["discount_price"] = GetAppDisPrice(HTMLAppPrice)[i]
+
         i = i + 1
+        
         if(i % 8 == 0):
             pages = pages + 1
 
@@ -54,8 +62,13 @@ def index():
         tempapplist.append(application)
 
     GameList["applications"] = tempapplist
-    tetete = json.dumps(GameList, ensure_ascii=False, indent=4)
+    GameList["total_app"] = i
     return Response(json.dumps(GameList, ensure_ascii=False, indent=4), mimetype='text/json')
+
+@app.route("/Get/<int:Rank>")
+def GetTop(Rank):
+    print("Hellow")
+    return Rank.text
 
 def GetAppSmPic(HtmlAppPic):
     PicList = []
@@ -117,6 +130,16 @@ def GetAppDisPrice(HtmlAppPrice):
             DisPriceList.append("NT$" + Price.get_text().strip().split("NT$")[length-1])
 
     return DisPriceList
+
+def GetHeaderPic(small_picurl, applink):
+    url = ""
+
+    if(small_picurl[4] == "bundles"):
+        url = "https://steamcdn-a.akamaihd.net/steam/" + small_picurl[4] + "/"  + applink[4] + "/" + small_picurl[6] + "/header.jpg"
+    else:
+        url = "https://steamcdn-a.akamaihd.net/steam/" + small_picurl[4] + "/" + applink[4] + "/header.jpg"
+    
+    return url
 
 
 
