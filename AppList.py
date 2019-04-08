@@ -8,11 +8,25 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
+@app.route("/Page/<int:PageNumber>")
+def SpecPage(PageNumber):
+    return GetApp(PageNumber)
+
+@app.route("/GetALL")
+def AllApp():
+    return GetApp(None)
 
 @app.route("/Get")
-def index():
-    RankOrder = 1
-    PageNumber = 1
+def DefaultPage():
+    return GetApp(1)
+
+def GetApp(PN):
+    if(PN == None):
+        PageNumber = 1
+    else:
+        PageNumber = PN
+    
+    RankOrder = 0
     tempapplist = []
     GameList = {
             "type" : "topseller",
@@ -43,8 +57,9 @@ def index():
 
         if(HTMLEndPage == []):
             i = 0
-            PageNumber = PageNumber + 1
+
             print("Im Here")
+            
             for item in HTMLAppInfo:
                 application = {}
                 link = item["href"]
@@ -66,10 +81,18 @@ def index():
                 if(i % 8 == 0):
                     pages = pages + 1
 
-                application["page"] = pages
+                if(PN != None):
+                    application["page"] = PN
+                else:
+                    application["page"] = pages
+
                 application["rank"] = RankOrder
 
                 tempapplist.append(application)
+            
+            if(PN != None):
+                application["page"] = PN
+                break
         else:
             break
 
