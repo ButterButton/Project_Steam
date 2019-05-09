@@ -26,7 +26,7 @@ def GetApp(PN):
     else:
         PageNumber = PN
     
-    RankOrder = 0
+    RankOrder = 25 * (PageNumber - 1)
     tempapplist = []
     GameList = {
             "type" : "topseller",
@@ -38,9 +38,7 @@ def GetApp(PN):
     }
 
     while(True):     
-        # res = requests.get("https://store.steampowered.com/search/?filter=topsellers&os=win&ignore_preferences=1&cc=TW")
         Url = "https://store.steampowered.com/search/?ignore_preferences=1&filter=topsellers&os=win&cc=TW&page=" + str(PageNumber)
-        print(Url)
         res = requests.get(Url)
         soup = BeautifulSoup(res.text, 'html.parser')
         HTMLAppInfo = soup.find_all("a", class_="search_result_row")
@@ -50,15 +48,11 @@ def GetApp(PN):
         HTMLAppDis = soup.select(".search_discount")
         HTMLAppPrice = soup.find_all("div", class_="search_price")
         HTMLEndPage = soup.find_all("p",text="No results were returned for that query.")
-
-        print(HTMLEndPage)
         pages = 1
 
 
         if(HTMLEndPage == []):
             i = 0
-
-            print("Im Here")
             
             for item in HTMLAppInfo:
                 application = {}
