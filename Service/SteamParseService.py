@@ -4,9 +4,9 @@ import requests
 class SteamRankPageParseService:
 
     RankPageSoup = set()
+    AppQuantity = 0
     AppUrlList = []
     SmallPictureList = []
-    HeaderPictureList = []
     AppNameList = []
     EvaluationList = []
     DiscountList = []
@@ -17,29 +17,27 @@ class SteamRankPageParseService:
     def __init__(self , RankPageUrl):
         Result = requests.get(RankPageUrl)
         self.RankPageSoup = BeautifulSoup(Result.text, "html.parser")
+        self.__SetAll()
 
-    def SetAppUrl(self):
+    def __SetAppUrl(self):
         UrlResult = self.RankPageSoup.find_all("a", class_="search_result_row")
 
         for Url in UrlResult:
-            print(Url["href"])
             self.AppUrlList.append(Url["href"])
 
-    def SetAppSmallPicture(self):
+    def __SetAppSmallPicture(self):
         SmallPictureResult = self.RankPageSoup.find_all("div", class_="search_capsule")
 
         for Pic in SmallPictureResult:
-            print(Pic.img["src"])
             self.SmallPictureList.append(Pic.img["src"])
 
-    def SetAppName(self):
+    def __SetAppName(self):
         AppNameResult = self.RankPageSoup.find_all("span", class_="title")
 
         for Name in AppNameResult:
-            print(Name.get_text())
             self.AppNameList.append(Name.get_text())
 
-    def SetAppEvaluation(self):
+    def __SetAppEvaluation(self):
         AppEvaluationResult = self.RankPageSoup.select(".search_reviewscore")
 
         for Evaluation in AppEvaluationResult:
@@ -48,9 +46,7 @@ class SteamRankPageParseService:
             else:
                 self.EvaluationList.append(Evaluation.span["data-tooltip-html"])
 
-        print(self.EvaluationList)
-
-    def SetAppDiscount(self):
+    def __SetAppDiscount(self):
         AppDiscountResult = self.RankPageSoup.select(".search_discount")
 
         for AppDiscount in AppDiscountResult:
@@ -58,10 +54,8 @@ class SteamRankPageParseService:
                 self.DiscountList.append("No Disocunt")
             else:
                 self.DiscountList.append(AppDiscount.find("span").get_text())
-        
-        print(self.DiscountList)
 
-    def SetAppOriginalAndDiscountPirce(self):
+    def __SetAppOriginalAndDiscountPirce(self):
         AppPriceResult = self.RankPageSoup.find_all("div", class_ = "search_price")
 
         for AppPrice in AppPriceResult:
@@ -72,24 +66,51 @@ class SteamRankPageParseService:
                 Length = len(AppPrice.get_text().split("NT$"))
                 self.OriginalPriceList.append(AppPrice.find("strike").get_text())
                 self.DiscountPriceList.append("NT$" + AppPrice.get_text().strip().split("NT$")[Length-1])
-        
-        print(len(self.OriginalPriceList))
-        print(len(self.DiscountPriceList))
 
-    def SetAll(self):
-        self.SetAppUrl()
-        self.SetAppSmallPicture()
-        self.SetAppName()
-        self.SetAppEvaluation()
-        self.SetAppDiscount()
-        self.SetAppOriginalAndDiscountPirce()
+    def __SetAll(self):
+        self.__SetAppUrl()
+        self.__SetAppSmallPicture()
+        self.__SetAppName()
+        self.__SetAppEvaluation()
+        self.__SetAppDiscount()
+        self.__SetAppOriginalAndDiscountPirce()
+        self.AppQuantity = len(self.AppUrlList)
+
+    def IsDataSetAllReady(self):
+
+        Length = self.AppQuantity
+        print("AppUrlList :" + str(Length))
+        if(Length != len(self.SmallPictureList)):
+            print("SmallPictureList :" + str(len(self.SmallPictureList)))
+            return False
+        if(Length != len(self.AppNameList)):
+            print("AppNameList :" + str(len(self.AppNameList)))
+            return False
+        if(Length != len(self.EvaluationList)):
+            print("EvaluationList :" + str(len(self.EvaluationList)))
+            return False
+        if(Length != len(self.DiscountList)):
+            print("DiscountList :" + str(len(self.DiscountList)))
+            return False
+        if(Length != len(self.OriginalPriceList)):
+            print("OriginalPriceList :" + str(len(self.OriginalPriceList)))
+            return False
+        if(Length != len(self.DiscountPriceList)):
+            print("DiscountPriceList :" + str(len(self.DiscountPriceList)))
+            return False
+        
+        
+        return True
 
 class SteamApplicationPageParseService:
     
+    ApplicationPageSoup = set()
     ApplicationPageUrl = ""
 
     def __init__(self, ApplicationPageUrl):
+        ApplicationPageResult = requests.get(ApplicationPageUrl)
         self.ApplicationPageUrl = ApplicationPageUrl
+        self.ApplicationPageSoup = BeautifulSoup(ApplicationPageResult.text, "html.parser")
 
     def GetHeaderPicture(self, SmallPictureUrl):
         HeaderPictureUrl = ""
@@ -103,10 +124,19 @@ class SteamApplicationPageParseService:
         
         return HeaderPictureUrl
 
+    def GetScreenshot(self):
+        ScreenshotUrl = ""
+        ScreenshotResult = self.ApplicationPageSoup.find_all("a", class_ = "highlight_screenshot_link")
 
+        # https://steamcdn-a.akamaihd.net/steam/apps/271590/ss_eb0a041f0699ad4c98c6ef2b8222c264e0435864.1920x1080.jpg?t=1544815097
 
+        if(self.ApplicationPageUrl.split("/")[4] == "app"):
+            for Screenshot in ScreenshotResult:
+                ScreenshotUrl = ScreenshotUrl + Screenshot["href"].split("/")[6] + "/"
+        
+        return ScreenshotUrl
 
+# test = SteamRankPageParseService("https://store.steampowered.com/search/?ignore_preferences=1&filter=topsellers&os=win&cc=TW&page=1")
+# test._AppUrlList = []
+# print(test._AppUrlList)
 
-
-TEST = SteamApplicationPageParseService("https://store.steampowered.com/app/271590/Grand_Theft_Auto_V/?snr=1_7_7_topsellers_150_1")
-print(TEST.GetHeaderPicture("https://steamcdn-a.akamaihd.net/steam/apps/271590/capsule_sm_120.jpg?t=1544815097"))
