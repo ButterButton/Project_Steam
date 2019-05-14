@@ -6,6 +6,8 @@ class SteamRankPageParseService:
     RankPageSoup = set()
     AppQuantity = 0
     AppUrlList = []
+    AppIDList = []
+    AppTypeList = []
     SmallPictureList = []
     AppNameList = []
     EvaluationList = []
@@ -19,11 +21,15 @@ class SteamRankPageParseService:
         self.RankPageSoup = BeautifulSoup(Result.text, "html.parser")
         self.__SetAll()
 
-    def __SetAppUrl(self):
+    def __SetBaseInformation(self):
+        # URL/ID/Type
         UrlResult = self.RankPageSoup.find_all("a", class_="search_result_row")
 
         for Url in UrlResult:
             self.AppUrlList.append(Url["href"])
+            self.AppIDList.append(Url["href"].split("/")[4])
+            self.AppTypeList.append(Url["href"].split("/")[3])
+
 
     def __SetAppSmallPicture(self):
         SmallPictureResult = self.RankPageSoup.find_all("div", class_="search_capsule")
@@ -68,7 +74,7 @@ class SteamRankPageParseService:
                 self.DiscountPriceList.append("NT$" + AppPrice.get_text().strip().split("NT$")[Length-1])
 
     def __SetAll(self):
-        self.__SetAppUrl()
+        self.__SetBaseInformation()
         self.__SetAppSmallPicture()
         self.__SetAppName()
         self.__SetAppEvaluation()
@@ -76,7 +82,7 @@ class SteamRankPageParseService:
         self.__SetAppOriginalAndDiscountPirce()
         self.AppQuantity = len(self.AppUrlList)
 
-    def IsDataSetAllReady(self):
+    def IsAllDataSetReady(self):
 
         Length = self.AppQuantity
         print("AppUrlList :" + str(Length))
@@ -129,14 +135,16 @@ class SteamApplicationPageParseService:
         ScreenshotResult = self.ApplicationPageSoup.find_all("a", class_ = "highlight_screenshot_link")
 
         # https://steamcdn-a.akamaihd.net/steam/apps/271590/ss_eb0a041f0699ad4c98c6ef2b8222c264e0435864.1920x1080.jpg?t=1544815097
-
-        if(self.ApplicationPageUrl.split("/")[4] == "app"):
+        
+        if(self.ApplicationPageUrl.split("/")[3] == "app"):
             for Screenshot in ScreenshotResult:
                 ScreenshotUrl = ScreenshotUrl + Screenshot["href"].split("/")[6] + "/"
         
         return ScreenshotUrl
 
 # test = SteamRankPageParseService("https://store.steampowered.com/search/?ignore_preferences=1&filter=topsellers&os=win&cc=TW&page=1")
-# test._AppUrlList = []
-# print(test._AppUrlList)
+# print(test.AppTypeList)
+# test = SteamApplicationPageParseService("https://store.steampowered.com/app/271590/Grand_Theft_Auto_V/?snr=1_7_7_topsellers_150_1")
+# shot = test.GetScreenshot()
+# print(shot)
 
