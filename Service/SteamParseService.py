@@ -23,6 +23,10 @@ class SteamRankPageParseService:
 
     def __SetBaseInformation(self):
         # URL/ID/Type
+        self.AppUrlList = []
+        self.AppIDList = []
+        self.AppTypeList = []
+
         UrlResult = self.RankPageSoup.find_all("a", class_="search_result_row")
 
         for Url in UrlResult:
@@ -32,18 +36,24 @@ class SteamRankPageParseService:
 
 
     def __SetAppSmallPicture(self):
+        self.SmallPictureList = []
+
         SmallPictureResult = self.RankPageSoup.find_all("div", class_="search_capsule")
 
         for Pic in SmallPictureResult:
             self.SmallPictureList.append(Pic.img["src"])
 
     def __SetAppName(self):
+        self.AppNameList = []
+
         AppNameResult = self.RankPageSoup.find_all("span", class_="title")
 
         for Name in AppNameResult:
             self.AppNameList.append(Name.get_text())
 
     def __SetAppEvaluation(self):
+        self.EvaluationList = []
+
         AppEvaluationResult = self.RankPageSoup.select(".search_reviewscore")
 
         for Evaluation in AppEvaluationResult:
@@ -53,6 +63,8 @@ class SteamRankPageParseService:
                 self.EvaluationList.append(Evaluation.span["data-tooltip-html"])
 
     def __SetAppDiscount(self):
+        self.DiscountList = []
+
         AppDiscountResult = self.RankPageSoup.select(".search_discount")
 
         for AppDiscount in AppDiscountResult:
@@ -62,6 +74,9 @@ class SteamRankPageParseService:
                 self.DiscountList.append(AppDiscount.find("span").get_text())
 
     def __SetAppOriginalAndDiscountPirce(self):
+        self.OriginalPriceList = []
+        self.DiscountPriceList = []
+        
         AppPriceResult = self.RankPageSoup.find_all("div", class_ = "search_price")
 
         for AppPrice in AppPriceResult:
@@ -108,6 +123,14 @@ class SteamRankPageParseService:
         
         return True
 
+    def IsLastPage(self):
+        LastPage = self.RankPageSoup.find_all("p",text="No results were returned for that query.")
+        
+        if(LastPage != []):
+            return True
+        
+        return False
+
 class SteamApplicationPageParseService:
     
     ApplicationPageSoup = set()
@@ -142,8 +165,8 @@ class SteamApplicationPageParseService:
         
         return ScreenshotUrl
 
-# test = SteamRankPageParseService("https://store.steampowered.com/search/?ignore_preferences=1&filter=topsellers&os=win&cc=TW&page=1")
-# print(test.AppTypeList)
+# test = SteamRankPageParseService("https://store.steampowered.com/search/?ignore_preferences=1&filter=topsellers&os=win&cc=TW&page=2")
+# print(test.DiscountList)
 # test = SteamApplicationPageParseService("https://store.steampowered.com/app/271590/Grand_Theft_Auto_V/?snr=1_7_7_topsellers_150_1")
 # shot = test.GetScreenshot()
 # print(shot)
