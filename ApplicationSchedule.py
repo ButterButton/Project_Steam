@@ -16,8 +16,6 @@ DBCursor = DBService.cursor()
 SelectSQL = "SELECT COUNT(*) FROM Application WHERE UpdateDateTime = '%s'"
 DBCursor.execute(SelectSQL % DateTimeNow)
 Result = DBCursor.fetchone()
-DBCursor.close()
-DBService.close()
 
 if(Result[0] == 0):
     print("開始執行排程")
@@ -57,7 +55,7 @@ if(Result[0] == 0):
 
         print("第" + str(PageNumber) + "頁解析花費時間 :" + str(datetime.datetime.now() - TimeStart))
 
-        if(RankPage.IsLastPage()):
+        if(RankPage.IsLastPage() or PageNumber == 1):
             break
 
         PageNumber = PageNumber + 1
@@ -78,6 +76,7 @@ if(Result[0] == 0):
     for InsertData in InsertDataList:
         TempInsertDataList.append(InsertData)
         N = N + 1
+        print(N)
         if(N == ListLength or N == 300):
             DBCursor.executemany(InsertManySQL, TempInsertDataList)
             TempInsertDataList = []
@@ -88,6 +87,8 @@ if(Result[0] == 0):
 
     print("共插入完成" + str(TotalAppQuantity) + "個Apps")
     print("總共花費時間 :" + str(datetime.datetime.now() - TimeStart))
-    
+
 else:
     print("已經有" + DateTimeNow + "的資料，共" + str(Result[0]) + "筆")
+    DBCursor.close()
+    DBService.close()
