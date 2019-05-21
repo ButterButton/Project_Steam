@@ -55,7 +55,7 @@ if(Result[0] == 0):
 
         print("第" + str(PageNumber) + "頁解析花費時間 :" + str(datetime.datetime.now() - TimeStart))
 
-        if(RankPage.IsLastPage() or PageNumber == 1):
+        if(RankPage.IsLastPage()):
             break
 
         PageNumber = PageNumber + 1
@@ -71,20 +71,23 @@ if(Result[0] == 0):
 
     TempInsertDataList = []
     ListLength = len(InsertDataList)
-    N = 0
+    UpperN = 0
+    TotalN = 0
 
     for InsertData in InsertDataList:
         TempInsertDataList.append(InsertData)
-        N = N + 1
-        print(N)
-        if(N == ListLength or N == 300):
-            DBCursor.executemany(InsertManySQL, TempInsertDataList)
-            TempInsertDataList = []
-            N = 0
-            DBCursor.close()
-            DBService.commit()
-            DBService.close()
+        UpperN = UpperN + 1
+        TotalN = TotalN + 1
 
+        if(TotalN == ListLength or UpperN == 300):
+            InsertDBCursor = DBService.cursor()
+            InsertDBCursor.executemany(InsertManySQL, TempInsertDataList)
+            TempInsertDataList = []
+            UpperN = 0
+            InsertDBCursor.close()
+
+    DBService.commit()
+    DBService.close()
     print("共插入完成" + str(TotalAppQuantity) + "個Apps")
     print("總共花費時間 :" + str(datetime.datetime.now() - TimeStart))
 
