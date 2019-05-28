@@ -3,6 +3,7 @@ from Service.SteamParseService import *
 from Service.DataBaseService import DataBaseService
 import datetime
 import time
+import os
 
 DateTimeNow = datetime.datetime.now().strftime("%Y-%m-%d")
 TimeStart = datetime.datetime.now()
@@ -25,11 +26,10 @@ if(Result[0] == 0):
         RankPageUrl = "https://store.steampowered.com/search/?ignore_preferences=1&filter=topsellers&os=win&cc=TW&page=" + StrPageNumber
         RankPage = SteamRankPageParseService(RankPageUrl)
 
-        print("開始解析第" + StrPageNumber + "頁")
-        print("解析中...")
-
         if(RankPage.IsAllDataSetReady() == True):            
             for AppCount in range(RankPage.AppQuantity):
+                print("開始解析第" + StrPageNumber + "頁")
+                print("解析中...")
                 print("正在解析排行榜第" + StrPageNumber + "頁中第" + str(AppCount + 1) + "個App")
 
                 AppUrl = RankPage.AppUrlList[AppCount]
@@ -39,7 +39,7 @@ if(Result[0] == 0):
                 InsertDataList.append(
                     (
                         DateTimeNow, "TopSeller", RankPage.AppIDList[AppCount], 
-                        RankPage.AppNameList[AppCount], RankPage.AppIDList[AppCount], RankPage.EvaluationList[AppCount], 
+                        RankPage.AppNameList[AppCount], RankPage.AppTypeList[AppCount], RankPage.EvaluationList[AppCount], 
                         RankPage.OriginalPriceList[AppCount], RankPage.DiscountPriceList[AppCount], RankPage.DiscountList[AppCount],
                         RankPage.AppUrlList[AppCount], SmallUrl, ApplicationPage.GetHeaderPicture(SmallUrl),
                         PageNumber, SteamRank, ApplicationPage.GetScreenshot(), "", ""
@@ -48,12 +48,14 @@ if(Result[0] == 0):
 
                 AppCount = AppCount + 1
                 SteamRank = AppCount
+                os.system("cls")
 
             TotalAppQuantity = TotalAppQuantity + RankPage.AppQuantity
         else:
             break
 
-        print("第" + str(PageNumber) + "頁解析花費時間 :" + str(datetime.datetime.now() - TimeStart))
+        print("第" + str(PageNumber) + "頁解析已花費時間 :" + str(datetime.datetime.now() - TimeStart))
+        os.system("cls")
 
         if(RankPage.IsLastPage()):
             break
@@ -61,6 +63,7 @@ if(Result[0] == 0):
         PageNumber = PageNumber + 1
         print(len(InsertDataList))
 
+    os.system("cls")
     print("共" + str(TotalAppQuantity) + "個App解析完成")
     print("解析共花費時間 :" + str(datetime.datetime.now() - TimeStart))
     print("開始新增資料進Table")
@@ -88,7 +91,7 @@ if(Result[0] == 0):
 
     DBService.commit()
     DBService.close()
-    print("共插入完成" + str(TotalAppQuantity) + "個Apps")
+    print("共插入完成" + str(ListLength) + "個Apps")
     print("總共花費時間 :" + str(datetime.datetime.now() - TimeStart))
 
 else:

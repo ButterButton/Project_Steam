@@ -166,7 +166,7 @@ class SteamApplicationPageParseService:
         return ScreenshotUrl
 
 # test = SteamRankPageParseService("https://store.steampowered.com/search/?ignore_preferences=1&filter=topsellers&os=win&cc=TW&page=2")
-# print(test.DiscountList)
+# print(test.AppTypeList)
 # test = SteamApplicationPageParseService("https://store.steampowered.com/app/271590/Grand_Theft_Auto_V/?snr=1_7_7_topsellers_150_1")
 # shot = test.GetScreenshot()
 # print(shot)

@@ -16,7 +16,17 @@ class DataBaseService:
 
         return DB
 
+    def QuerySelect(self, QueryDate):
+        DBService = self.GetDataBase()
+        DBCursor = DBService.cursor()
+        SelectQuery = "SELECT * FROM Application WHERE UpdateDateTime = '%s'"
+
+        DBCursor.execute(SelectQuery % QueryDate)
+        Result = DBCursor.fetchall()
+
+        return Result
+
 
 # test = DataBaseService()
-# DB = test.GetDataBase()
-# print(type(DB))
+# for t in test.QuerySelect("2019-05-28"):
+#     print(t)
