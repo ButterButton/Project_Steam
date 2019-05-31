@@ -8,7 +8,7 @@ import os
 DateTimeNow = datetime.datetime.now().strftime("%Y-%m-%d")
 TimeStart = datetime.datetime.now()
 PageNumber = 1
-SteamRank = 1
+SteamRank = 0
 TotalAppQuantity = 0
 InsertDataList = []
 DBService = DataBaseService().GetDataBase()
@@ -32,6 +32,7 @@ if(Result[0] == 0):
                 print("解析中...")
                 print("正在解析排行榜第" + StrPageNumber + "頁中第" + str(AppCount + 1) + "個App")
 
+                SteamRank = SteamRank + 1
                 AppUrl = RankPage.AppUrlList[AppCount]
                 SmallUrl = RankPage.SmallPictureList[AppCount]
                 ApplicationPage = SteamApplicationPageParseService(AppUrl)
@@ -47,7 +48,6 @@ if(Result[0] == 0):
                 )
 
                 AppCount = AppCount + 1
-                SteamRank = AppCount
                 os.system("cls")
 
             TotalAppQuantity = TotalAppQuantity + RankPage.AppQuantity

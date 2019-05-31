@@ -12,24 +12,33 @@ CORS(app)
 def TodayData():
     DateTimeToday = datetime.datetime.now().strftime("%Y-%m-%d")
     DBService = DataBaseService()
-    QueryApplicationsList = DBService.QueryDateSelectAll("2019-05-30")
+    QueryApplicationsList = DBService.QueryDateSelectAll(DateTimeToday)
+    SteamRank = InsertAPIStructure(QueryApplicationsList, DateTimeToday)
+    
+    return Response(json.dumps(SteamRank, ensure_ascii=False, indent=4), mimetype='text/json')
+
+def InsertAPIStructure(QueryData, DateTimeToday):
     IsHaveData = False
-    TotalQuantity = len(QueryApplicationsList)
     ApplicationList = []
-
-    if(TotalQuantity > 0):
-        IsHaveData = True
-
-
     SteamRank = {
-        "IsSuccess": IsHaveData,
-        "Type": QueryApplicationsList[0][1],
-        "datetime": (QueryApplicationsList[0][0]).strftime("%Y-%m-%d"),
-        "total_app": TotalQuantity,
-        "applications":[]
+        "IsSuccess": False,
+        "type": "",
+        "datetime": DateTimeToday,
+        "total_app": 0,
+        "applications": []
     }
 
-    for App in QueryApplicationsList:
+    if(QueryData == []):
+        return SteamRank
+
+    for App in QueryData:
+        ScreenshotList = []
+        ScreenshotUrlList = App[14].split("/")
+        ScreenshotUrlList.remove("")
+
+        for Url in ScreenshotUrlList:
+            ScreenshotList.append("https://steamcdn-a.akamaihd.net/steam/" + App[4] + "s/" + str(App[2]) + "/" + Url)
+
         Application = {
             "steam_link": App[9],
             "app_id": App[2],
@@ -43,14 +52,23 @@ def TodayData():
             "discount_price": App[7],
             "page": App[12],
             "rank": App[13],
-            "screenshot_list": [],
+            "screenshot_list": ScreenshotList,
         }
+
         ApplicationList.append(Application)
 
-    print(ApplicationList[0])
-    
-    return "Success"
+    TotalQuantity = len(ApplicationList)
 
+    if(TotalQuantity > 0 and TotalQuantity == len(QueryData)):
+        IsHaveData = True
+
+    SteamRank["IsSuccess"] = IsHaveData
+    SteamRank["Type"] = QueryData[0][1]
+    SteamRank["datetime"] = DateTimeToday
+    SteamRank["total_app"] = TotalQuantity
+    SteamRank["applications"] = ApplicationList
+
+    return SteamRank
  
 if __name__ == "__main__":
     app.run(debug=True)
