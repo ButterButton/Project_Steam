@@ -8,7 +8,11 @@ import json
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/GetApps/Today")
+@app.route("/")
+def index():
+    return "Welcome To Mono SteamRankAPI"
+
+@app.route("/GET/Apps/Today")
 def TodayData():
     DateTimeToday = datetime.datetime.now().strftime("%Y-%m-%d")
     DBService = DataBaseService()

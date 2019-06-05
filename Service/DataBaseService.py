@@ -5,7 +5,7 @@ class DataBaseService:
     
     def GetDataBase(self):
         ConfigFile = configparser.ConfigParser()
-        ConfigFile.read("Service\config.py")
+        ConfigFile.read("Service/config.py")
         DB = mysql.connector.connect(
             host = ConfigFile["DBProject_Steam"]["Host"],
             port =ConfigFile["DBProject_Steam"]["Port"],
