@@ -69,7 +69,7 @@ class SteamRankPageParseService:
 
         for AppDiscount in AppDiscountResult:
             if(AppDiscount.find("span") == None):
-                self.DiscountList.append("No Disocunt")
+                self.DiscountList.append("No Discount")
             else:
                 self.DiscountList.append(AppDiscount.find("span").get_text())
 
