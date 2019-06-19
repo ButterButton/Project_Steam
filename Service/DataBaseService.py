@@ -36,6 +36,16 @@ class DataBaseService:
 
         return Result
 
+    def QueryDiscountCount(self, QueryDate):
+        DBService = self.GetDataBase()
+        DBCursor = DBService.cursor()
+        SelectQuery = "SELECT COUNT(*) FROM Application WHERE UpdateDateTime = '%s' AND Discount <> 'No Discount'"
+
+        DBCursor.execute(SelectQuery % QueryDate)
+        Result = DBCursor.fetchone()
+
+        return Result
+
 # test = DataBaseService()
 # for t in test.QuerySelect("2019-05-28"):
 #     print(t)

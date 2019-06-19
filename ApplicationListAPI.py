@@ -2,6 +2,7 @@ from flask import Flask
 from flask import Response
 from flask_cors import CORS
 from Service.DataBaseService import DataBaseService
+import pytz
 import datetime
 import json
 
@@ -12,16 +13,36 @@ CORS(app)
 def index():
     return "Welcome To Mono SteamRankAPI"
 
+@app.route("/GET/Time")
+def GetTimeNow():
+    TimeNow = datetime.datetime.now()
+    TimeNowTaipei = TimeNow.astimezone(pytz.timezone('Asia/Taipei'))
+
+    return TimeNowTaipei.strftime("%Y-%m-%d %H:%M:%S")
+
 @app.route("/GET/Apps/Today")
 def TodayData():
-    DateTimeToday = datetime.datetime.now().strftime("%Y-%m-%d")
-    DBService = DataBaseService()
-    QueryApplicationsList = DBService.QueryDateSelectAll(DateTimeToday)
-    SteamRank = InsertAPIStructure(QueryApplicationsList, DateTimeToday)
+    TimeNow = datetime.datetime.now()
+    TimeNowTaipei = TimeNow.astimezone(pytz.timezone('Asia/Taipei'))
+    DateTimeToday = TimeNowTaipei.strftime("%Y-%m-%d")
+    SteamRank = GetQueryTimeAppList(DateTimeToday)
+    
+    return Response(json.dumps(SteamRank, ensure_ascii=False), mimetype='text/json')
+
+@app.route("/GET/Test/TodayFormated")
+def GetTodayAppList():
+    TimeNow = datetime.datetime.now()
+    TimeNowTaipei = TimeNow.astimezone(pytz.timezone('Asia/Taipei'))
+    DateTimeToday = TimeNowTaipei.strftime("%Y-%m-%d")
+    SteamRank = GetQueryTimeAppList(DateTimeToday)
     
     return Response(json.dumps(SteamRank, ensure_ascii=False, indent=4), mimetype='text/json')
 
-def InsertAPIStructure(QueryData, DateTimeToday):
+def GetQueryTimeAppList(DateTimeToday):
+    DBService = DataBaseService()
+    QueryData = DBService.QueryDateSelectAll(DateTimeToday)
+    QueryDiscountAppQuantity = DBService.QueryDiscountCount(DateTimeToday)
+
     IsHaveData = False
     ApplicationList = []
     SteamRank = {
@@ -29,6 +50,7 @@ def InsertAPIStructure(QueryData, DateTimeToday):
         "type": "",
         "datetime": DateTimeToday,
         "total_app": 0,
+        "discount_app_quantity": 0,
         "applications": []
     }
 
@@ -71,6 +93,7 @@ def InsertAPIStructure(QueryData, DateTimeToday):
     SteamRank["datetime"] = DateTimeToday
     SteamRank["total_app"] = TotalQuantity
     SteamRank["applications"] = ApplicationList
+    SteamRank["discount_app_quantity"] = QueryDiscountAppQuantity[0]
 
     return SteamRank
  
