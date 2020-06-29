@@ -13,30 +13,31 @@ CORS(app)
 def index():
     return "Welcome To Mono SteamRankAPI"
 
-@app.route("/GET/Time")
+def GetTimeNow_Taipei():
+    TimeNow = datetime.datetime.now()
+    TimeNowTaipei = TimeNow.astimezone(pytz.timezone('Asia/Taipei'))
+
+    return TimeNowTaipei
+    
+@app.route("/Time", methods=["GET"])
 def GetTimeNow():
-    TimeNow = datetime.datetime.now()
-    TimeNowTaipei = TimeNow.astimezone(pytz.timezone('Asia/Taipei'))
+    return GetTimeNow_Taipei().strftime("%Y-%m-%d %H:%M:%S")
 
-    return TimeNowTaipei.strftime("%Y-%m-%d %H:%M:%S")
 
-@app.route("/GET/Apps/Today")
-def TodayData():
-    TimeNow = datetime.datetime.now()
-    TimeNowTaipei = TimeNow.astimezone(pytz.timezone('Asia/Taipei'))
-    DateTimeToday = TimeNowTaipei.strftime("%Y-%m-%d")
+def GetAppList():
+    DateTimeToday = GetTimeNow_Taipei().strftime("%Y-%m-%d")
     SteamRank = GetQueryTimeAppList(DateTimeToday)
     
-    return Response(json.dumps(SteamRank, ensure_ascii=False), mimetype='text/json')
+    return SteamRank
 
-@app.route("/GET/Test/TodayFormated")
-def GetTodayAppList():
-    TimeNow = datetime.datetime.now()
-    TimeNowTaipei = TimeNow.astimezone(pytz.timezone('Asia/Taipei'))
-    DateTimeToday = TimeNowTaipei.strftime("%Y-%m-%d")
-    SteamRank = GetQueryTimeAppList(DateTimeToday)
-    
-    return Response(json.dumps(SteamRank, ensure_ascii=False, indent=4), mimetype='text/json')
+
+@app.route("/Apps/Today", methods=["GET"])
+def TodayData():   
+    return Response(json.dumps(GetAppList(), ensure_ascii=False), mimetype='text/json')
+
+@app.route("/Test/TodayFormated", methods=["GET"])
+def GetTodayAppList():  
+    return Response(json.dumps(GetAppList(), ensure_ascii=False, indent=4), mimetype='text/json')
 
 def GetQueryTimeAppList(DateTimeToday):
     DBService = DataBaseService()
@@ -99,3 +100,4 @@ def GetQueryTimeAppList(DateTimeToday):
  
 if __name__ == "__main__":
     app.run(debug=True)
+
